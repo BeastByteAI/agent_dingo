@@ -11,6 +11,23 @@ _types = {
 }
 
 def parse(docstring: str) -> dict:
+    """Parses a docstring.
+
+    Parameters
+    ----------
+    docstring : str
+        The docstring to parse.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the description and the arguments of the function.
+
+    Raises
+    ------
+    ValueError
+        If the docstring has no description.
+    """
     parsed = _parse(docstring)
     description = ''
     if parsed.short_description:
