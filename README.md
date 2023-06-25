@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/OKUA1/agent_dingo/releases">
-    <img src="https://img.shields.io/github/release/OKUA1/agent_dingo">
+    <img src="https://img.shields.io/github/v/release/OKUA1/agent_dingo.svg">
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
