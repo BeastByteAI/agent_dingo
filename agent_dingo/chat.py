@@ -33,5 +33,7 @@ def send_message(
     if functions is not None:
         f["functions"] = functions
         f["function_call"] = "auto"
-    response = openai.ChatCompletion.create(model=model, messages=messages, **f)
+    response = openai.ChatCompletion.create(
+        model=model, messages=messages, temperature=temperature, **f
+    )
     return response["choices"][0]["message"]
