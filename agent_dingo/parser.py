@@ -7,8 +7,9 @@ _types = {
     "float": "number",
     "bool": "boolean",
     "list": "array",
-    "dict": "object"
+    "dict": "object",
 }
+
 
 def parse(docstring: str) -> dict:
     """Parses a docstring.
@@ -29,20 +30,20 @@ def parse(docstring: str) -> dict:
         If the docstring has no description.
     """
     parsed = _parse(docstring)
-    description = ''
+    description = ""
     if parsed.short_description:
         description = parsed.short_description
     if parsed.long_description:
-        if description != '':
-            description += '\n' + parsed.long_description
+        if description != "":
+            description += "\n" + parsed.long_description
         else:
             description = parsed.long_description
-    if description == '':
-        raise ValueError('Docstring has no description')
+    if description == "":
+        raise ValueError("Docstring has no description")
     args = {}
     requires_context = False
     for arg in parsed.params:
-        if arg.arg_name == 'chat_context' and arg.type_name == 'ChatContext':
+        if arg.arg_name == "chat_context" and arg.type_name == "ChatContext":
             requires_context = True
             continue
         d = {}
@@ -57,8 +58,8 @@ def parse(docstring: str) -> dict:
         else:
             d = {"description": arg.description}
         if arg.type_name in _types:
-            args[arg.arg_name] = {'type': _types[arg.type_name]}
+            args[arg.arg_name] = {"type": _types[arg.type_name]}
         else:
-             args[arg.arg_name] = {'type': "string"}
+            args[arg.arg_name] = {"type": "string"}
         args[arg.arg_name].update(d)
-    return {'description': description, 'properties': args}, requires_context
+    return {"description": description, "properties": args}, requires_context

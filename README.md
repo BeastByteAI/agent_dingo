@@ -27,19 +27,19 @@ _Dingo_ allows you to easily integrate any function into ChatGPT by adding a sin
 
 ## Quick Start ⚡️
 
-Step 1: Install `agent-dingo`
+**Step 1:** Install `agent-dingo`
 
 ```bash
 pip install agent-dingo
 ```
 
-Step 2: Configure your OpenAI API key
+**Step 2:** Configure your OpenAI API key
 
 ```bash
 export OPENAI_API_KEY=<YOUR_KEY>
 ```
 
-Step 3: Instantiate the agent
+**Step 3:** Instantiate the agent
 
 ```python
 from agent_dingo import AgentDingo
@@ -47,7 +47,7 @@ from agent_dingo import AgentDingo
 agent = AgentDingo()
 ```
 
-Step 4: Add `agent.function` decorator to the function you wish to integrate
+**Step 4:** Add `agent.function` decorator to the function you wish to integrate
 
 ```python
 @agent.function
@@ -55,10 +55,31 @@ def get_current_weather(city: str):
     ...
 ```
 
-Step 5: Run the conversation
+**Step 5:** Run the conversation
 
 ```python
 agent.chat("What is the current weather in Linz?")
+```
+
+**Optional:** Run an OpenAI compatible server
+
+```python
+from agent_dingo.wrapper import DingoWrapper
+DingoWrapper(agent).serve()
+```
+
+The server can be accessed using the `openai` python package:
+
+```python
+import openai
+
+openai.api_base = "http://localhost:8080"
+
+r = openai.ChatCompletion.create(
+    model = "gpt-3.5-turbo",
+    messages = [{"role": "user", "content": "What is the current weather in Linz?"}],
+    temperature=0.0,
+)
 ```
 
 ## Support us 🤝
@@ -71,7 +92,7 @@ You can support the project in the following ways:
 
 📰 Post about _Dingo_ on LinkedIn or other platforms
 
-## Our Related Projects 🔗
+🔗 Check out our other projects (cards below are clickable):
 
 <a href="https://github.com/OKUA1/falcon"><img src="https://raw.githubusercontent.com/gist/OKUA1/6264a95a8abd225c74411a2b707b0242/raw/3cedb53538cb04656cd9d7d07e697e726896ce9f/falcon_light.svg"/></a> <br>
 <a href="https://github.com/iryna-kondr/scikit-llm"><img src="https://gist.githubusercontent.com/OKUA1/6264a95a8abd225c74411a2b707b0242/raw/029694673765a3af36d541925a67214e677155e5/skllm_light.svg"/></a>
@@ -174,6 +195,21 @@ from my_module import get_temperature
 agent.register_function(get_temperature)
 ```
 
+Alternatively, you can define a function descriptor manually and register it using the `register_descriptor` method. In this case, a `json_representation` compatible with [OpenAI function calling API](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions) should be provided.
+
+```python
+from agent_dingo.descriptor import FunctionDescriptor
+
+d = FunctionDescriptor(
+  name = "<function_name>",
+  json_representation = {name: "<function_name>", description: "<function_description>", parameters: ...}
+  func = function_callable
+  requires_context = True or False
+)
+
+agent.register_descriptor(d)
+```
+
 ### Running the conversation
 
 Once the functions are registered, you can run the conversation using the `chat` method of the agent.
@@ -246,3 +282,148 @@ agent.chat(
     before_function_call=before_function_call,
 )
 ```
+
+### DingoWrapper + Web Server
+
+In addition to using the agent directly, it is possible to wrap it into a `DingoWrapper`, which provides an OpenAI-like API.
+
+```python
+from agent_dingo.wrapper import DingoWrapper
+wrapped_agent = DingoWrapper(agent, before_function_call = None, max_function_calls=10)
+```
+
+Once the agent is wrapped, it can be used to create the chat completions using the `chat_completion` method.
+
+```python
+r = wrapped_agent.chat_completion(
+    messages = [{"role": "user", "content": "What is the current weather in Linz?"}],
+    model = "gpt-3.5-turbo",
+    temperature=0.0, #optional
+    chat_context=None, #optional
+)
+```
+
+In principle, this method can be used as a drop-in replacement for the `openai.ChatCompletion.create` method. However, there are several differences:
+
+- DingoWrapper does not support most of the optional hyperparameters of the `openai.ChatCompletion.create` method (except `temperature`);
+- DingoWrapper has an additional (optional) `chat_context` parameter that can be used to pass the global context of the conversation;
+
+Example:
+
+```python
+# openai.ChatCompletion
+r = openai.ChatCompletion.create(
+    messages = [{"role": "user", "content": "What is the current weather in Linz?"}],
+    model = "gpt-3.5-turbo",
+    temperature=0.0
+)
+
+# DingoWrapper
+r = wrapped_agent.chat_completion(
+    messages = [{"role": "user", "content": "What is the current weather in Linz?"}],
+    model = "gpt-3.5-turbo",
+    temperature=0.0
+)
+```
+
+The `DingoWrapper` can also be used to run a web server (also compatible with the OpenAI API). The server can be started using the `serve` method.
+
+The serve method requires additional dependencies:
+
+```bash
+pip install agent_dingo[server]
+```
+
+```python
+wrapped_agent.serve(port=8080, host="0.0.0.0", threads=4)
+```
+
+Once the server has started, it can be accessed using e.g. the `openai` python package.
+
+```python
+# client.py
+import openai
+
+openai.api_base = "http://localhost:8080"
+
+r = openai.ChatCompletion.create(
+    model = "gpt-3.5-turbo",
+    messages = [{"role": "user", "content": "What is the temperature in Linz ?"}],
+    temperature=0.0,
+)
+
+print(r)
+```
+
+Response:
+
+```json
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "The current temperature in Linz is 25\u00b0C and it is sunny.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1692537919,
+  "id": "chatcmpl-d6a9d6cc-7a26-41d5-a4a6-2c737b652f4b",
+  "model": "dingo-gpt-3.5-turbo-0613",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 318,
+    "total_tokens": 350
+  }
+}
+```
+
+_Note: the "usage" metric accumulates the number of tokens used for all intermediate function calls during the conversation._
+
+### LangChain Tools 🦜️🔗
+
+It is possible to convert [Langchain Tools](https://python.langchain.com/docs/modules/agents/tools/) into function descriptors in order to register them with Dingo. The converter can be used as follows:
+
+1. Install langchain:
+
+```bash
+pip install agent_dingo[langchain]
+```
+
+2. Define the tool, we will use the Wikipedia tool as an example:
+
+```python
+from langchain.tools.wikipedia.tool import WikipediaQueryRun
+from langchain.utilities.wikipedia import WikipediaAPIWrapper
+tool = WikipediaQueryRun(api_wrapper = WikipediaAPIWrapper())
+```
+
+Please refer to the [LangChain documentation](https://api.python.langchain.com/en/latest/api_reference.html#module-langchain.tools) for more details on how to define the tools.
+
+3. Convert the tool into a function descriptor and register:
+
+```python
+from agent_dingo.langchain import convert_langchain_tool
+descriptor = convert_langchain_tool(tool)
+agent.register_descriptor(descriptor)
+```
+
+4. Run the conversation:
+
+```python
+# The agent will query Wikipedia to obtain the answer.
+agent.chat("What is LangChain according to Wikipedia? Explain in one sentence.")
+
+# > According to Wikipedia, LangChain is a framework designed to simplify the creation of applications using large language models (LLMs), with use-cases including document analysis and summarization, chatbots, and code analysis.
+```
+
+In comparison, when we try to query ChatGPT directly with the same question, we get the following hallucinated response (since it does not have access to the relevant up-to-date information):
+
+```python
+# > LangChain is a blockchain-based platform that aims to provide language learning services and connect language learners with native speakers for real-time practice and feedback.
+```
+
+_Note: some of the tools might be incompatible with (or simply unsuitable for) Dingo. We do not guarantee that all of the tools will work out of the box._

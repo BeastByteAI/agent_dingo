@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, Callable
+from agent_dingo.usage import UsageMeter
 import openai
 
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -10,6 +11,7 @@ def send_message(
     model: str = "gpt-3.5-turbo-0613",
     functions: Optional[List] = None,
     temperature: float = 1.0,
+    usage_meter: Optional[UsageMeter] = None,
 ) -> dict:
     """Sends messages to the LLM and returns the response.
 
@@ -23,6 +25,8 @@ def send_message(
         List of functions to use, by default None
     temperature : float, optional
         Temperature to use, by default 1.
+    log_usage : Callable, optional
+        Function to log usage, by default None
 
     Returns
     -------
@@ -36,4 +40,6 @@ def send_message(
     response = openai.ChatCompletion.create(
         model=model, messages=messages, temperature=temperature, **f
     )
+    if usage_meter:
+        usage_meter.log_raw(response)
     return response["choices"][0]["message"]

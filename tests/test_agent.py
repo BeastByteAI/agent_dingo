@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from agent_dingo.agent import AgentDingo
+from agent_dingo.function_descriptor import FunctionDescriptor
 
 
 class TestAgentDingo(unittest.TestCase):
@@ -20,6 +21,17 @@ class TestAgentDingo(unittest.TestCase):
 
         self.agent.register_function(func)
         self.assertEqual(len(self.agent._registry._Registry__functions), 1)
+
+    def test_register_descriptor(self):
+        d = FunctionDescriptor(
+            name="function_from_descriptor",
+            func=lambda arg: None,
+            json_repr={},
+            requires_context=False,
+        )
+        self.agent.register_descriptor(d)
+        self.assertEqual(len(self.agent._registry._Registry__functions), 1)
+        self.assertIn("function_from_descriptor", self.agent._registry._Registry__functions.keys())
 
     def test_function_decorator(self):
         @self.agent.function

@@ -4,6 +4,9 @@ from agent_dingo.helpers import get_required_args, construct_json_repr
 from agent_dingo.context import ChatContext
 from agent_dingo.chat import send_message
 from agent_dingo.docgen import generate_docstring
+from agent_dingo.usage import UsageMeter
+from agent_dingo.function_descriptor import FunctionDescriptor
+from dataclasses import asdict
 import json
 import os
 
@@ -99,6 +102,23 @@ class AgentDingo:
             return bool(os.getenv("DINGO_ALLOW_CODEGEN", True))
         return self._allow_codegen
 
+    def register_descriptor(self, descriptor: FunctionDescriptor) -> None:
+        """Registers a function descriptor with the agent.
+
+        Parameters
+        ----------
+        descriptor : FunctionDescriptor
+            The function descriptor to register.
+        """
+        if not isinstance(descriptor, FunctionDescriptor):
+            raise ValueError("descriptor must be a FunctionDescriptor")
+        self._registry.add(
+            name=descriptor.name,
+            func=descriptor.func,
+            json_repr=descriptor.json_repr,
+            requires_context=descriptor.requires_context,
+        )
+
     def register_function(self, func: Callable) -> None:
         """Registers a function with the agent.
 
@@ -152,6 +172,7 @@ class AgentDingo:
         temperature: float = 1.0,
         max_function_calls: int = 10,
         before_function_call: Callable = None,
+        usage_meter: Optional[UsageMeter] = None,
     ) -> Tuple[str, List[dict]]:
         """Sends a message to the LLM and returns the response. Calls functions if the LLM requests it.
 
@@ -190,6 +211,7 @@ class AgentDingo:
                 model=model,
                 functions=available_functions_i,
                 temperature=temperature,
+                usage_meter=usage_meter,
             )
             if response.get("function_call"):
                 function_name = response["function_call"]["name"]
