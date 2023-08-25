@@ -6,7 +6,7 @@
   <br>
 </h1>
 
-<h4 align="center">A microframework for buildling simple conversational AI agents.</h4>
+<h4 align="center">A microframework for building simple conversational AI agents.</h4>
 
 <p align="center">
   <a href="https://github.com/OKUA1/agent_dingo/releases">
