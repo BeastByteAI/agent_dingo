@@ -25,5 +25,5 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-server = ["flask>=2.0.0,<3.0.0", "waitress>=2.0.0,<3.0.0"]
+server = ["flask>=2.0.0,<4.0.0", "waitress>=2.0.0,<3.0.0"]
 langchain = ["langchain>=0.0.230,<0.1.0"]
