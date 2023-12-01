@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 dependencies = [
-  "openai>=0.27.0,<1.0.0",
+  "openai>=0.27.0,<2.0.0",
   "docstring_parser>=0.15.0,<1.0.0",
   "tenacity>=8.2.0,<9.0.0",
 ]
