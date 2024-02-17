@@ -27,7 +27,7 @@ _Dingo_ allows you to easily integrate any function into ChatGPT by adding a sin
 
 ## Quick Start ⚡️
 
-> [!WARNING] > **This is a `v1` branch which is still in development**. The documentation might be incomplete, and some features might not be fully implemented. The current stable version is `v0.1.0`, which can be found in the [`main`](https://github.com/BeastByteAI/agent_dingo) branch.
+> ⚠️ **This is a `v1` branch which is still in development**. The documentation might be incomplete, and some features might not be fully implemented. The current stable version is `v0.1.0`, which can be found in the [`main`](https://github.com/BeastByteAI/agent_dingo) branch.
 
 **Step 1:** Install `agent-dingo`
 
@@ -70,8 +70,6 @@ pipeline_raw = agent.as_pipeline()
 prompt = ChatPrompt(messages=[UserMessage("What is the current weather in Linz?")])
 out = pipeline_raw.run(prompt)
 print(out)
-
-
 
 # Pipeline with a prompt builder
 from agent_dingo.core.blocks import PromptBuilder
