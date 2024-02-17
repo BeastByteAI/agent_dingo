@@ -6,7 +6,7 @@
   <br>
 </h1>
 
-<h4 align="center">A microframework for building LLM-based pipelines and agents.</h4>
+<h4 align="center">A microframework for building LLM-powered pipelines and agents.</h4>
 
 <p align="center">
   <a href="https://github.com/OKUA1/agent_dingo/releases">
@@ -23,7 +23,7 @@
   </a>
 </p>
 
-_Dingo_ allows you to easily integrate any function into ChatGPT by adding a single line of code. With _Dingo_, you no longer have to worry about manually integrating the functions or dealing with intermediate function calls. The framework is crafted to automate these tasks, allowing you to focus on writing the core functionality.
+_Dingo_ is a compact LLM orchestration framework designed for straightforward development of production-ready LLM-powered applications. It combines simplicity with flexibility, allowing for the efficient construction of pipelines and agents, while maintaining a high level of control over the process.
 
 ## Quick Start ⚡️
 
