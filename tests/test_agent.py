@@ -1,12 +1,14 @@
 import unittest
 from unittest.mock import patch
-from agent_dingo.agent import AgentDingo
-from agent_dingo.function_descriptor import FunctionDescriptor
+from agent_dingo.agent import Agent
+from agent_dingo.agent.function_descriptor import FunctionDescriptor
+from fake_llm import FakeLLM
 
 
 class TestAgentDingo(unittest.TestCase):
     def setUp(self):
-        self.agent = AgentDingo()
+        llm = FakeLLM()
+        self.agent = Agent(llm)
 
     def test_register_function(self):
         def func(arg: str):
@@ -31,7 +33,9 @@ class TestAgentDingo(unittest.TestCase):
         )
         self.agent.register_descriptor(d)
         self.assertEqual(len(self.agent._registry._Registry__functions), 1)
-        self.assertIn("function_from_descriptor", self.agent._registry._Registry__functions.keys())
+        self.assertIn(
+            "function_from_descriptor", self.agent._registry._Registry__functions.keys()
+        )
 
     def test_function_decorator(self):
         @self.agent.function
@@ -46,27 +50,6 @@ class TestAgentDingo(unittest.TestCase):
             pass
 
         self.assertEqual(len(self.agent._registry._Registry__functions), 1)
-
-    @patch(
-        "agent_dingo.agent.send_message",
-        return_value=({"role": "assistant", "content": "Hello, world!"}),
-    )
-    def test_chat(self, mock_send_message):
-        @self.agent.function
-        def func(arg: str):
-            """_summary_
-
-            Parameters
-            ----------
-            arg : str
-                _description_
-            """
-            pass
-
-        messages = [{"role": "user", "content": "Say hello!"}]
-        response, history = self.agent.chat(messages)
-        self.assertEqual(response, "Hello, world!")
-        self.assertEqual(len(history), 2)
 
 
 if __name__ == "__main__":

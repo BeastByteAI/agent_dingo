@@ -1,6 +1,6 @@
 from typing import Callable
 import inspect
-from agent_dingo.chat import send_message
+from agent_dingo.core.blocks import BaseLLM
 import re
 
 _SYSTEM_MSG = "You are a code generation tool. Your responses are limited to providing the docstrings of functions."
@@ -15,7 +15,7 @@ Docstring:
 """
 
 
-def generate_docstring(func: Callable, model: str) -> str:
+def generate_docstring(func: Callable, model: BaseLLM) -> str:
     """Generates a docstring for a given function.
 
     Parameters
@@ -35,7 +35,7 @@ def generate_docstring(func: Callable, model: str) -> str:
         {"role": "system", "content": _SYSTEM_MSG},
         {"role": "user", "content": _PROMPT.format(code=code)},
     ]
-    response = send_message(messages, model=model, temperature=0.0)
+    response = model.send_message(messages, temperature=0.0)
 
     response = (
         response["content"]

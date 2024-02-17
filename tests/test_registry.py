@@ -1,5 +1,5 @@
 import unittest
-from agent_dingo.agent import _Registry
+from agent_dingo.agent.registry import Registry as _Registry
 
 
 class TestRegistry(unittest.TestCase):
@@ -34,7 +34,9 @@ class TestRegistry(unittest.TestCase):
         json_repr1 = {"name": "func1"}
         json_repr2 = {"name": "func2"}
         self.registry.add("func1", func1, json_repr1, False)
-        self.registry.add("func2", func2, json_repr2, True)
+        self.registry.add(
+            "func2", func2, json_repr2, True, required_context_keys=["any"]
+        )
         available_functions = self.registry.get_available_functions()
         self.assertEqual(len(available_functions), 2)
         self.assertEqual(available_functions[0]["name"], "func1")

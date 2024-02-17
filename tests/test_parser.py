@@ -1,5 +1,5 @@
 import unittest
-from agent_dingo.parser import parse
+from agent_dingo.agent.parser import parse
 
 
 class TestParser(unittest.TestCase):
