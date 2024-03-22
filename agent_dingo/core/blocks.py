@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Coroutine, Optional, Union, List, Dict
 from abc import ABC, abstractmethod
 from agent_dingo.core.message import Message
-from agent_dingo.core.state import State, ChatPrompt, KVData, Context, Store
+from agent_dingo.core.state import State, ChatPrompt, KVData, Context, Store, UsageMeter
 from agent_dingo.core.output_parser import BaseOutputParser, DefaultOutputParser
 import re
 import joblib
@@ -79,7 +79,6 @@ class BaseLLM(BaseReasoner):
     def forward(self, state: ChatPrompt, context: Context, store: Store) -> KVData:
         if not isinstance(state, ChatPrompt):
             raise TypeError(f"State must be a ChatPrompt, got {type(state)}")
-        # TODO: add usage meter
         new_state = KVData(
             _out_0=self.process_prompt(state, usage_meter=store.usage_meter)
         )
@@ -88,7 +87,6 @@ class BaseLLM(BaseReasoner):
     async def async_forward(self, state: State | None, context: Context, store: Store):
         if not isinstance(state, ChatPrompt):
             raise TypeError(f"State must be a ChatPrompt, got {type(state)}")
-        # TODO: add usage meter
         new_state = KVData(
             _out_0=await self.async_process_prompt(state, usage_meter=store.usage_meter)
         )
@@ -99,6 +97,18 @@ class BaseLLM(BaseReasoner):
 
     def get_required_context_keys(self) -> List[str]:
         return []
+
+    def process_prompt(
+        self, prompt: ChatPrompt, usage_meter: Optional[UsageMeter] = None, **kwargs
+    ):
+        return self.send_message(prompt.dict, None, usage_meter)["content"]
+
+    async def async_process_prompt(
+        self, prompt: ChatPrompt, usage_meter: Optional[UsageMeter] = None, **kwargs
+    ):
+        return (await self.async_send_message(prompt.dict, None, usage_meter))[
+            "content"
+        ]
 
 
 class BaseAgent(BaseReasoner):

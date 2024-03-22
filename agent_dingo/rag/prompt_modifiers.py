@@ -1,7 +1,7 @@
 from agent_dingo.core.state import ChatPrompt, Context, Store
 from agent_dingo.core.message import UserMessage, SystemMessage
 from agent_dingo.core.blocks import BasePromptModifier as _BasePromptModifier
-from agent_dingo.rag.base import BaseEmbedder, BaseVectorStore
+from agent_dingo.rag.base import BaseEmbedder, BaseVectorStore, RetrievedChunk
 from typing import List, Optional
 
 _DEFAULT_RAG_TEMPLATE = """
@@ -32,12 +32,32 @@ class RAGPromptModifier(_BasePromptModifier):
         self.n_chunks_to_retrieve = n_chunks_to_retrieve
 
     def forward(self, state: ChatPrompt, context: Context, store: Store) -> ChatPrompt:
+        if not isinstance(state, ChatPrompt):
+            raise ValueError("state must be a ChatPrompt")
         query = state.messages[-1].content
         query_embedding = self.embedder.embed(query)
         retrieved_data = self.vector_store.retrieve(
             self.n_chunks_to_retrieve,
             query_embedding,
         )
+        return self._forward(state, retrieved_data)
+
+    async def async_forward(
+        self, state: ChatPrompt, context: Context, store: Store
+    ) -> ChatPrompt:
+        if not isinstance(state, ChatPrompt):
+            raise ValueError("state must be a ChatPrompt")
+        query = state.messages[-1].content
+        query_embedding = await self.embedder.async_embed(query)
+        retrieved_data = await self.vector_store.async_retrieve(
+            self.n_chunks_to_retrieve,
+            query_embedding,
+        )
+        return self._forward(state, retrieved_data)
+
+    def _forward(
+        self, state: ChatPrompt, retrieved_data: List[RetrievedChunk]
+    ) -> ChatPrompt:
         modified = False
         messages = []
         target_message_type = (
@@ -61,10 +81,6 @@ class RAGPromptModifier(_BasePromptModifier):
             )
         print([m.content for m in ChatPrompt(messages).messages])
         return ChatPrompt(messages)
-
-    async def async_forward(self, state: ChatPrompt, context: Context, store: Store):
-        # TODO
-        return self.forward(state, context, store)
 
     def get_required_context_keys(self) -> List[str]:
         return []

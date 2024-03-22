@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from agent_dingo.agent import Agent
 from agent_dingo.agent.function_descriptor import FunctionDescriptor
-from fake_llm import FakeLLM
+from tests.fake_llm import FakeLLM
 
 
 class TestAgentDingo(unittest.TestCase):

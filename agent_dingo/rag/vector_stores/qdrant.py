@@ -4,8 +4,14 @@ from agent_dingo.rag.base import (
     RetrievedChunk,
 )
 from agent_dingo.utils import sha256_to_uuid
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
+
+try:
+    from qdrant_client import QdrantClient, AsyncQdrantClient
+    from qdrant_client.http import models
+except ImportError:
+    raise ImportError(
+        "Qdrant is not installed. Please install it using `pip install agenet-dingo[qdrant]`"
+    )
 from typing import Optional, List
 
 
@@ -32,6 +38,11 @@ class Qdrant(_BaseVectorStore):
         client_params = {k: v for k, v in clint_params.items() if v is not None}
         self.client = (
             QdrantClient(**client_params) if client_params else QdrantClient(":memory:")
+        )
+        self.async_client = (
+            AsyncQdrantClient(**client_params)
+            if client_params
+            else AsyncQdrantClient(":memory:")
         )
         self.collection_name = collection_name
         self.embedding_size = embedding_size
@@ -73,6 +84,17 @@ class Qdrant(_BaseVectorStore):
             query_vector=query,
             limit=k,
         )
+        return self._process_search_reults(search_result)
+
+    async def async_retrieve(self, k: int, query: List[float]):
+        search_result = await self.async_client.search(
+            collection_name=self.collection_name,
+            query_vector=query,
+            limit=k,
+        )
+        return self._process_search_reults(search_result)
+
+    def _process_search_reults(self, search_result: List) -> List[RetrievedChunk]:
         retrieved_chunks = []
         for r in search_result:
             content = r.payload["content"]

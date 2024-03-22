@@ -5,7 +5,16 @@ from agent_dingo.rag.base import (
 )
 from agent_dingo.utils import sha256_to_uuid
 from typing import Optional, List
-import chromadb
+
+try:
+    import chromadb
+except ImportError:
+    raise ImportError(
+        "Chromadb is not installed. Please install it using `pip install agent-dingo[chromadb]`"
+    )
+
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 
 class ChromaDB(_BaseVectorStore):
@@ -35,6 +44,8 @@ class ChromaDB(_BaseVectorStore):
 
         self.upsert_batch_size = upsert_batch_size
 
+        self._executor = None
+
     def upsert_chunks(self, chunks: List[Chunk]):
         for i in range(0, len(chunks), self.upsert_batch_size):
             batch = chunks[i : i + self.upsert_batch_size]
@@ -49,7 +60,7 @@ class ChromaDB(_BaseVectorStore):
                 metadatas=batch_metadata,
             )
 
-    def retrieve(self, k: int, query: List[float]):
+    def retrieve(self, k: int, query: List[float]) -> List[RetrievedChunk]:
         search_result = self.collection.query(
             query_embeddings=query,
             n_results=k,
@@ -63,3 +74,12 @@ class ChromaDB(_BaseVectorStore):
         ):
             retrieved_chunks.append(RetrievedChunk(content, metadata, score))
         return retrieved_chunks
+
+    async def async_retrieve(self, k: int, query: List[float]) -> List[RetrievedChunk]:
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(self._get_executor(), self.retrieve, k, query)
+
+    def _get_executor(self) -> ThreadPoolExecutor:
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=1)
+        return self._executor

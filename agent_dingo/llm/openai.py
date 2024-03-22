@@ -1,7 +1,6 @@
-from typing import Optional, List, Callable
+from typing import Optional, List
 from agent_dingo.core.blocks import BaseLLM
-from agent_dingo.core.state import ChatPrompt, UsageMeter
-
+from agent_dingo.core.state import UsageMeter
 import openai
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -96,22 +95,14 @@ class OpenAI(BaseLLM):
         temperature=None,
         **kwargs,
     ):
-        out = _send_message(
+        response = _send_message(
             client=self.client,
             messages=messages,
             model=self.model,
             functions=functions,
             temperature=temperature or self.temperature,
         )
-        res, full_res = to_dict(out[0]), to_dict(out[1])
-        if usage_meter:
-            usage_meter.increment(
-                prompt_tokens=full_res["usage"]["prompt_tokens"],
-                completion_tokens=full_res["usage"]["completion_tokens"],
-            )
-        if "function_call" in res.keys():
-            del res["function_call"]
-        return res
+        return self._postprocess_response(response, usage_meter)
 
     async def async_send_message(
         self,
@@ -121,15 +112,17 @@ class OpenAI(BaseLLM):
         temperature=None,
         **kwargs,
     ):
-        out = await _async_send_message(
+        response = await _async_send_message(
             client=self.async_client,
             messages=messages,
             model=self.model,
             functions=functions,
             temperature=temperature or self.temperature,
         )
+        return self._postprocess_response(response, usage_meter)
 
-        res, full_res = to_dict(out[0]), to_dict(out[1])
+    def _postprocess_response(self, response, usage_meter: UsageMeter = None):
+        res, full_res = to_dict(response[0]), to_dict(response[1])
         if usage_meter:
             usage_meter.increment(
                 prompt_tokens=full_res["usage"]["prompt_tokens"],
@@ -138,15 +131,3 @@ class OpenAI(BaseLLM):
         if "function_call" in res.keys():
             del res["function_call"]
         return res
-
-    def process_prompt(
-        self, prompt: ChatPrompt, usage_meter: Optional[UsageMeter] = None, **kwargs
-    ):
-        return self.send_message(prompt.dict, None, usage_meter)["content"]
-
-    async def async_process_prompt(
-        self, prompt: ChatPrompt, usage_meter: Optional[UsageMeter] = None, **kwargs
-    ):
-        return (await self.async_send_message(prompt.dict, None, usage_meter))[
-            "content"
-        ]

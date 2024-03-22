@@ -1,7 +1,6 @@
 from typing import Union, List
 from agent_dingo.core.message import Message
 from threading import Lock
-from asyncio import Lock as AsyncLock
 
 
 class ChatPrompt:

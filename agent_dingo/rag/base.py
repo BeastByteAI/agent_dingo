@@ -3,6 +3,7 @@ from typing import List, Optional
 from dataclasses import dataclass
 import hashlib
 import json
+from typing import Union
 
 
 @dataclass
@@ -60,13 +61,22 @@ class BaseChunker(ABC):
 
 
 class BaseEmbedder(ABC):
-    # TODO: batch mode ?
+    batch_size: int = 1
+
     def embed_chunks(self, chunks: List[Chunk]):
-        for chunk in chunks:
-            chunk.embedding = self.embed(chunk.content)
+        for i in range(0, len(chunks), self.batch_size):
+            batch = chunks[i : i + self.batch_size]
+            contents = [chunk.content for chunk in batch]
+            embeddings = self.embed(contents)
+            for chunk, embedding in zip(batch, embeddings):
+                chunk.embedding = embedding
 
     @abstractmethod
-    def embed(self, text: str) -> List[float]:
+    async def async_embed(self, texts: Union[str, List[str]]) -> List[List[float]]:
+        pass
+
+    @abstractmethod
+    def embed(self, texts: Union[str, List[str]]) -> List[List[float]]:
         pass
 
 
@@ -77,4 +87,10 @@ class BaseVectorStore(ABC):
 
     @abstractmethod
     def retrieve(self, k: int, embedding: List[float]) -> List[RetrievedChunk]:
+        pass
+
+    @abstractmethod
+    async def async_retrieve(
+        self, k: int, embedding: List[float]
+    ) -> List[RetrievedChunk]:
         pass
