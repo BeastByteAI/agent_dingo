@@ -19,9 +19,7 @@ class RecursiveChunker(BaseChunker):
         for doc in documents:
             chunks = self._split_text_recursive(doc.content, self.separators)
             chunks = self._merge_small_chunks(chunks)
-            all_chunks.extend(
-                [Chunk(content=chunk, parent=doc) for chunk in chunks]
-            )
+            all_chunks.extend([Chunk(content=chunk, parent=doc) for chunk in chunks])
         return all_chunks
 
     def _split_text_recursive(self, text, separators):

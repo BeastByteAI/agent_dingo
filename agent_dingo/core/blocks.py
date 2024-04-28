@@ -69,12 +69,16 @@ class BaseLLM(BaseReasoner):
     supports_function_calls = False
 
     @abstractmethod
-    def process_prompt(self, state: ChatPrompt, **kwargs) -> dict:
+    def send_message(
+        self, messages, functions=None, usage_meter: UsageMeter = None, **kwargs
+    ):
         pass
 
-    async def async_process_prompt(self, state: ChatPrompt, **kwargs) -> dict:
-        warnings.warn("Called sync LLM from async context.")
-        return await to_thread(self.process_prompt(state, **kwargs))
+    @abstractmethod
+    async def async_send_message(
+        self, messages, functions=None, usage_meter: UsageMeter = None, **kwargs
+    ):
+        pass
 
     def forward(self, state: ChatPrompt, context: Context, store: Store) -> KVData:
         if not isinstance(state, ChatPrompt):
@@ -135,7 +139,13 @@ class Squash(BaseKVDataProcessor):
         return []
 
 
-class PromptBuilder(Block):
+class BasePromptBuilder(Block):
+    @abstractmethod
+    def forward(self, state: KVData, context: Context, store: Store) -> ChatPrompt:
+        pass
+
+
+class PromptBuilder(BasePromptBuilder):
     def __init__(
         self,
         messages: list[Message],

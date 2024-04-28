@@ -8,7 +8,6 @@ except ImportError:
     raise ImportError(
         "litellm is not installed. Please install it using `pip install agent-dingo[litellm]`"
     )
-from concurrent.futures import ThreadPoolExecutor
 
 
 class LiteLLM(BaseLLM):

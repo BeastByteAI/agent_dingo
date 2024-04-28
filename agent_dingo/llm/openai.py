@@ -79,6 +79,7 @@ class OpenAI(BaseLLM):
         temperature: float = 0.7,
         base_url: Optional[str] = None,
         # TODO: Add per instance API key
+        # TODO: Add remaining generation parameters
     ):
         self.model = model
         self.temperature = temperature

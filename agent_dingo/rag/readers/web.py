@@ -1,5 +1,4 @@
 from typing import List
-from PyPDF2 import PdfReader
 from agent_dingo.rag.base import BaseReader as _BaseReader, Document
 import requests
 from bs4 import BeautifulSoup

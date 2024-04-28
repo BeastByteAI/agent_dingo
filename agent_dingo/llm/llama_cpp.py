@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from agent_dingo.core.blocks import BaseLLM
 from agent_dingo.core.state import UsageMeter
 
@@ -14,9 +14,11 @@ import asyncio
 
 
 class LlamaCPP(BaseLLM):
-    def __init__(self, model: str, temperature: float = 0.7, verbose: bool = False):
+    def __init__(
+        self, model: str, temperature: float = 0.7, verbose: bool = False, **kwargs: Any
+    ):
 
-        self.model = _Llama(model, verbose=verbose)
+        self.model = _Llama(model, verbose=verbose, **kwargs)
         self.temperature = temperature
         self._lock = threading.Lock()
         self._executor: Optional[ThreadPoolExecutor] = None

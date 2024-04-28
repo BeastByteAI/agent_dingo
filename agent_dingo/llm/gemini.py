@@ -60,7 +60,7 @@ class Gemini(BaseLLM):
             tools=self._get_tools(functions),
             generation_config={"temperature": temperature or self.temperature},
         )
-        self._postprocess_response(out, usage_meter)
+        return self._postprocess_response(out, usage_meter)
 
     async def async_send_message(
         self,
@@ -96,7 +96,6 @@ class Gemini(BaseLLM):
         converted = []
 
         for message in messages:
-            print("message -> ", message)
             if "_cache" in message.keys():
                 converted.append(message["_cache"])
             elif message["role"] in _ROLES_MAP.keys():
@@ -126,7 +125,6 @@ class Gemini(BaseLLM):
 
     def _gemini_to_openai(self, response):
         """Converts the Gemini response to OpenAI response."""
-        print(response)
         try:
             content = response.candidates[0].content.parts[0].text
         except AttributeError:
