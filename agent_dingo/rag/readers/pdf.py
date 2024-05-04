@@ -1,5 +1,11 @@
 from typing import List
-from PyPDF2 import PdfReader
+
+try:
+    from PyPDF2 import PdfReader
+except ImportError:
+    raise ImportError(
+        "PyPDF2 is not installed. Please install it using `pip install agent-dingo[rag_default]`"
+    )
 from agent_dingo.rag.base import BaseReader as _BaseReader, Document
 
 

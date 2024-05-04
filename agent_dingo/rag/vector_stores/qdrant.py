@@ -13,6 +13,7 @@ except ImportError:
         "Qdrant is not installed. Please install it using `pip install agenet-dingo[qdrant]`"
     )
 from typing import Optional, List
+from warnings import warn
 
 
 class Qdrant(_BaseVectorStore):
@@ -27,6 +28,7 @@ class Qdrant(_BaseVectorStore):
         api_key: Optional[str] = None,
         recreate_collection: bool = False,
         upsert_batch_size: int = 32,
+        try_init: bool = True,
     ):
         clint_params = {
             "host": host,
@@ -36,19 +38,45 @@ class Qdrant(_BaseVectorStore):
             "api_key": api_key,
         }
         client_params = {k: v for k, v in clint_params.items() if v is not None}
-        self.client = (
-            QdrantClient(**client_params) if client_params else QdrantClient(":memory:")
-        )
-        self.async_client = (
-            AsyncQdrantClient(**client_params)
-            if client_params
-            else AsyncQdrantClient(":memory:")
-        )
+        self.client_params = client_params
+        self._client = None
+        self._async_client = None
         self.collection_name = collection_name
         self.embedding_size = embedding_size
         self.recreate_collection = recreate_collection
         self.upsert_batch_size = upsert_batch_size
-        self._init_collection()
+        if path and (try_init or recreate_collection):
+            warn(
+                "Using local Qdrant storage will only work in a synchronous environment. Trying to call async methods will raise an error."
+            )
+        if try_init or recreate_collection:
+            self._init_collection()
+
+    def make_sync_client(self):
+        self._client = (
+            QdrantClient(**self.client_params)
+            if self.client_params
+            else QdrantClient(":memory:")
+        )
+
+    def make_async_client(self):
+        self._async_client = (
+            AsyncQdrantClient(**self.client_params)
+            if self.client_params
+            else AsyncQdrantClient(":memory:")
+        )
+
+    @property
+    def client(self):
+        if self._client is None:
+            self.make_sync_client()
+        return self._client
+
+    @property
+    def async_client(self):
+        if self._async_client is None:
+            self.make_async_client()
+        return self._async_client
 
     def _init_collection(self):
         create_fn = (
@@ -56,12 +84,17 @@ class Qdrant(_BaseVectorStore):
             if not self.recreate_collection
             else self.client.recreate_collection
         )
-        create_fn(
-            collection_name=self.collection_name,
-            vectors_config=models.VectorParams(
-                size=self.embedding_size, distance=models.Distance.COSINE
-            ),
-        )
+        try:
+            create_fn(
+                collection_name=self.collection_name,
+                vectors_config=models.VectorParams(
+                    size=self.embedding_size, distance=models.Distance.COSINE
+                ),
+            )
+        except ValueError as e:
+            if self.recreate_collection:
+                raise e
+            pass  # collection already exists
 
     def upsert_chunks(self, chunks: List[Chunk]):
         for i in range(0, len(chunks), self.upsert_batch_size):

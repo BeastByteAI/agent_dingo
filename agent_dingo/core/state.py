@@ -1,10 +1,17 @@
-from typing import Union, List
+from typing import Union, List, Any
 from agent_dingo.core.message import Message
 from threading import Lock
 
 
 class ChatPrompt:
     def __init__(self, messages: List[Message]):
+        """A collection of messages that are sent to the model.
+
+        Parameters
+        ----------
+        messages : List[Message]
+            The messages to send to the model.
+        """
         self.messages = messages
 
     @property
@@ -17,11 +24,21 @@ class ChatPrompt:
 
 class KVData:
     def __init__(self, **kwargs):
+        """A dictionary-like object that stores key-value pairs."""
         self._dict = {}
         for k, v in kwargs.items():
             self._dict[k] = v
 
-    def update(self, key, value):
+    def update(self, key: str, value: str):
+        """Update the value of a key.
+
+        Parameters
+        ----------
+        key : str
+            key to update
+        value : str
+            value to set
+        """
         if not isinstance(key, str) or not isinstance(value, str):
             raise TypeError("Both key and value must be strings.")
         # make existing keys immutable
@@ -59,6 +76,7 @@ class Context(KVData):
 
 class UsageMeter:
     def __init__(self):
+        """An object that resides in the store and keeps track of the usage. It is updated by the LLMs."""
         self.prompt_tokens = 0
         self.completion_tokens = 0
         self.last_finish_reason = None
@@ -79,6 +97,7 @@ class UsageMeter:
 
 class Store:
     def __init__(self):
+        """A simple key-value store that stores prompts, data, and other miscellaneous objects for the duration of a single pipeline run."""
         self._data = {}
         self._prompts = {}
         self._misc = {}
@@ -95,7 +114,16 @@ class Store:
         else:
             self._misc[key] = item
 
-    def update(self, key: str, item):
+    def update(self, key: str, item: Any):
+        """Update the store with a new item.
+
+        Parameters
+        ----------
+        key : str
+            A key to store the item under.
+        item : Any
+            The item to store.
+        """
         with self._lock:
             self._update(key, item)
 

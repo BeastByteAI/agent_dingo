@@ -1,6 +1,11 @@
 from agent_dingo.rag.base import BaseReader as _BaseReader, Document
 from typing import List
-import docx  # python-docx
+try:
+    import docx  # python-docx
+except ImportError:
+    raise ImportError(
+        "python-docx is not installed. Please install it using `pip install agent-dingo[rag_default]`"
+    )
 
 
 class WordDocumentReader(_BaseReader):

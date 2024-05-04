@@ -3,6 +3,7 @@ from agent_dingo.core.message import UserMessage, SystemMessage
 from agent_dingo.core.blocks import BasePromptModifier as _BasePromptModifier
 from agent_dingo.rag.base import BaseEmbedder, BaseVectorStore, RetrievedChunk
 from typing import List, Optional
+from warnings import warn
 
 _DEFAULT_RAG_TEMPLATE = """
 {original_message}
@@ -35,11 +36,15 @@ class RAGPromptModifier(_BasePromptModifier):
         if not isinstance(state, ChatPrompt):
             raise ValueError("state must be a ChatPrompt")
         query = state.messages[-1].content
-        query_embedding = self.embedder.embed(query)
-        retrieved_data = self.vector_store.retrieve(
-            self.n_chunks_to_retrieve,
-            query_embedding,
-        )
+        query_embedding = self.embedder.embed(query)[0]
+        try:
+            retrieved_data = self.vector_store.retrieve(
+                self.n_chunks_to_retrieve,
+                query_embedding,
+            )
+        except Exception as e:
+            retrieved_data = []
+            warn("No data was retrieved")
         return self._forward(state, retrieved_data)
 
     async def async_forward(
@@ -48,16 +53,22 @@ class RAGPromptModifier(_BasePromptModifier):
         if not isinstance(state, ChatPrompt):
             raise ValueError("state must be a ChatPrompt")
         query = state.messages[-1].content
-        query_embedding = await self.embedder.async_embed(query)
-        retrieved_data = await self.vector_store.async_retrieve(
-            self.n_chunks_to_retrieve,
-            query_embedding,
-        )
+        query_embedding = (await self.embedder.async_embed(query))[0]
+        try:
+            retrieved_data = await self.vector_store.async_retrieve(
+                self.n_chunks_to_retrieve,
+                query_embedding,
+            )
+        except Exception as e:
+            retrieved_data = []
+            warn("No data was retrieved")
         return self._forward(state, retrieved_data)
 
     def _forward(
         self, state: ChatPrompt, retrieved_data: List[RetrievedChunk]
     ) -> ChatPrompt:
+        if len(retrieved_data) < 1:
+            return state
         modified = False
         messages = []
         target_message_type = (
@@ -79,7 +90,6 @@ class RAGPromptModifier(_BasePromptModifier):
             raise ValueError(
                 f"Could not find a {target_message_type.__name__} message to modify"
             )
-        print([m.content for m in ChatPrompt(messages).messages])
         return ChatPrompt(messages)
 
     def get_required_context_keys(self) -> List[str]:

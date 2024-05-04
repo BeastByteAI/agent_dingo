@@ -1,4 +1,6 @@
 class Message:
+    """A base class to represent a message."""
+
     role: str = "undefined"
 
     def __init__(self, content: str):

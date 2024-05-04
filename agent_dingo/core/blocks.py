@@ -25,6 +25,8 @@ from asyncio import (
 
 
 class Block(ABC):
+    """Base building block of a pipeline"""
+
     @abstractmethod
     def forward(self, state: Optional[State], context: Context, store: Store) -> State:
         pass
@@ -40,6 +42,7 @@ class Block(ABC):
 
     @abstractmethod
     def get_required_context_keys(self) -> List[str]:
+        """Each block must specify the keys it requires from the context."""
         pass
 
     def __rshift__(self, other: Block) -> Pipeline:
@@ -58,13 +61,19 @@ class Block(ABC):
         return Parallel() & self & other
 
 
+######### REASONERS #########
+
+
 class BaseReasoner(Block):
+    """A reasoner is a block that takes a prompt and returns a KVData object."""
+
     @abstractmethod
-    def forward(self, state: ChatPrompt, context: Context, store: Store) -> State:
+    def forward(self, state: ChatPrompt, context: Context, store: Store) -> KVData:
         pass
 
 
 class BaseLLM(BaseReasoner):
+    """LLM is a type of reasoner that directly interacts with a language model."""
 
     supports_function_calls = False
 
@@ -116,10 +125,17 @@ class BaseLLM(BaseReasoner):
 
 
 class BaseAgent(BaseReasoner):
+    """An agent is a type of reasoner that can autonomously perform multi-step reasoning."""
+
     pass
 
 
+######### KVData Processors #########
+
+
 class BaseKVDataProcessor(Block):
+    """KVDataProcessor is a block that takes a KVData object and returns a KVData object."""
+
     @abstractmethod
     def forward(self, state: KVData, context: Context, store: Store) -> KVData:
         pass
@@ -127,6 +143,13 @@ class BaseKVDataProcessor(Block):
 
 class Squash(BaseKVDataProcessor):
     def __init__(self, template: str):
+        """Squash block takes a KVData with multiple keys and squashes them into a single key using a template string.
+
+        Parameters
+        ----------
+        template : str
+            Template string with (in-order) placeholders for each key in the KVData object.
+        """
         self.template = template
 
     def forward(self, state: KVData, context: Context, store: Store) -> KVData:
@@ -139,9 +162,16 @@ class Squash(BaseKVDataProcessor):
         return []
 
 
+######### Prompt Builders #########
+
+
 class BasePromptBuilder(Block):
+    """PromptBuilder is a block that takes a KVData object (or None) and returns a ChatPrompt."""
+
     @abstractmethod
-    def forward(self, state: KVData, context: Context, store: Store) -> ChatPrompt:
+    def forward(
+        self, state: Optional[KVData], context: Context, store: Store
+    ) -> ChatPrompt:
         pass
 
 
@@ -152,6 +182,18 @@ class PromptBuilder(BasePromptBuilder):
         from_state: Optional[Union[List[str], Dict[str, str]]] = None,
         from_store: Optional[Union[List[str], Dict[str, str]]] = None,
     ):
+        """
+        PromptBuilder formats the list of messages (templates) with values from the state, store and context.
+
+        Parameters
+        ----------
+        messages : list[Message]
+            List of message templates to format.
+        from_state : Optional[Union[List[str], Dict[str, str]]], optional
+            List of strings or mapping template->state that defines which placeholders should be populated by state values, by default None
+        from_store : Optional[Union[List[str], Dict[str, str]]], optional
+             List of strings or mapping template->store (where the store key is formated as <outer_key>.<inner_key>) that defines which placeholders should be populated by state values, by default None
+        """
         self.messages = messages
         self._from_state_keys = []
         self._from_store_keys = []
@@ -196,7 +238,9 @@ class PromptBuilder(BasePromptBuilder):
 
         return placeholder_names
 
-    def forward(self, state: KVData, context: Context, store: Store) -> ChatPrompt:
+    def forward(
+        self, state: Optional[KVData], context: Context, store: Store
+    ) -> ChatPrompt:
         values = {}
         for n in self._placeholder_names:
             if n in self._from_state.keys():
@@ -204,9 +248,11 @@ class PromptBuilder(BasePromptBuilder):
             elif n in self._from_store.keys():
                 if "." in self._from_store[n]:
                     outer, inner = self._from_store[n].split(".")
-                    values[n] = store.get_data(self._from_store[outer])[inner]
+                    values[n] = store.get_data(outer)[inner]
                 else:
-                    values[n] = store.get_data(self._from_store[n])
+                    raise ValueError(
+                        "Store key must be formatted as <outer_key>.<inner_key>"
+                    )
             elif n in context.keys():
                 values[n] = context[n]
             else:
@@ -225,18 +271,43 @@ class PromptBuilder(BasePromptBuilder):
         return keys
 
 
+######### Prompt Modifiers #########
+
+
 class BasePromptModifier(Block):
+    """A prompt modifier is a block that takes a ChatPrompt and returns a ChatPrompt."""
+
     @abstractmethod
     def forward(self, state: ChatPrompt, context: Context, store: Store) -> ChatPrompt:
         pass
 
 
+######### Special Blocks #########
+
+
 class Pipeline(Block):
     def __init__(self, output_parser: Optional[BaseOutputParser] = None):
+        """
+        A pipeline is a sequence of blocks that are executed in order.
+        The pipeline itself is a block that can be used in other pipelines.
+
+        Parameters
+        ----------
+        output_parser : Optional[BaseOutputParser], optional
+            custom output parser of the last step, by default None
+        """
         self.output_parser: BaseOutputParser = output_parser or DefaultOutputParser()
         self._blocks = []
 
     def add_block(self, block: Block):
+        """
+        Add a block to the pipeline.
+
+        Parameters
+        ----------
+        block : Block
+            Block to add to the pipeline.
+        """
         if not isinstance(block, Block):
             raise TypeError(f"Expected a Block, got {type(block)}")
         self._blocks.append(block)
@@ -260,6 +331,16 @@ class Pipeline(Block):
         return running_state
 
     def run(self, _state: Optional[State] = None, **kwargs: Dict[str, str]):
+        """
+        Runs the pipeline with the given state and context (populated with kwargs).
+        Each run initializes a new empty store.
+        The output of the last block is parsed using the output_parser and returned.
+
+        Parameters
+        ----------
+        _state : Optional[State], optional
+            initial state, by default None
+        """
         context = Context(**kwargs)
         store = Store()
         out = self.forward(state=_state, context=context, store=store)
@@ -286,9 +367,20 @@ class Pipeline(Block):
 
 class Parallel(Block):
     def __init__(self):
+        """
+        A parallel block executes multiple sub-blocks in parallel. The output of each block is stored as a separate key in the KVData object.
+        """
         self.blocks = []
 
     def add_block(self, block: Block):
+        """
+        Add a block to the parallel block.
+
+        Parameters
+        ----------
+        block : Block
+            Block to add.
+        """
         if not isinstance(block, Block):
             raise TypeError(f"Expected a Block, got {type(block)}")
         self.blocks.append(block)
@@ -348,6 +440,8 @@ class Parallel(Block):
 
 
 class Identity(Block):
+    """NO-OP block that returns the input state as is."""
+
     def forward(self, state: Optional[State], context: Context, store: Store) -> State:
         return state
 
@@ -362,6 +456,13 @@ class Identity(Block):
 
 class SaveState(Block):
     def __init__(self, key: str):
+        """Saves the current state to the store.
+
+        Parameters
+        ----------
+        key : str
+            Key to save the state under.
+        """
         self.key = key
 
     def get_required_context_keys(self) -> List[str]:
@@ -379,6 +480,16 @@ class SaveState(Block):
 
 class LoadState(Block):
     def __init__(self, from_: str, key: str):
+        """
+        Loads the state from the store.
+
+        Parameters
+        ----------
+        from_ : str
+            Defines whether to load from a Prompt of KVData section of the store.
+        key : str
+            Key to load the state from.
+        """
         if from_ not in ["prompts", "data"]:
             raise ValueError(f"from_ must be 'store' or 'context', got {from_}")
         self.from_ = from_
@@ -403,6 +514,13 @@ class LoadState(Block):
 
 class InlineBlock(Block):
     def __init__(self, required_context_keys: Optional[List[str]] = None):
+        """A decorator to convert a function into an inline block.
+
+        Parameters
+        ----------
+        required_context_keys : Optional[List[str]], optional
+            specifies the context keys required by the function, by default None
+        """
         self.required_context_keys = required_context_keys or []
         self.func = None
 

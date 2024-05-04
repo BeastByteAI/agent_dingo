@@ -1,7 +1,12 @@
 from typing import List
 from agent_dingo.rag.base import BaseReader as _BaseReader, Document
-import requests
-from bs4 import BeautifulSoup
+try:
+    import requests
+    from bs4 import BeautifulSoup
+except ImportError:
+    raise ImportError(
+        "requests or BeautifulSoup4 are not installed. Please install it using `pip install agent-dingo[rag_default]`"
+    )
 
 
 class WebpageReader(_BaseReader):
