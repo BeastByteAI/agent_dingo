@@ -261,11 +261,15 @@ class Agent(BaseAgent):
                         f, function_args = self.before_function_call(
                             function_name, f, function_args
                         )
-                    if inspect.iscoroutinefunction(f):
-                        warnings.warn("Async function is called from a sync agent.")
-                        result = asyncio_run(f(**function_args))
-                    else:
-                        result = f(**function_args)
+                    try:
+                        if inspect.iscoroutinefunction(f):
+                            warnings.warn("Async function is called from a sync agent.")
+                            result = asyncio_run(f(**function_args))
+                        else:
+                            result = f(**function_args)
+                    except Exception as e:
+                        print(e)
+                        result = "An error occurred while executing the function."
                     messages.append(
                         {
                             "role": "tool",
@@ -319,11 +323,17 @@ class Agent(BaseAgent):
                         f, function_args = self.before_function_call(
                             function_name, f, function_args
                         )
-                    if inspect.iscoroutinefunction(f):
-                        result = await f(**function_args)
-                    else:
-                        warnings.warn("Sync function is called from an async agent.")
-                        result = await to_thread(f, **function_args)
+                    try:
+                        if inspect.iscoroutinefunction(f):
+                            result = await f(**function_args)
+                        else:
+                            warnings.warn(
+                                "Sync function is called from an async agent."
+                            )
+                            result = await to_thread(f, **function_args)
+                    except Exception as e:
+                        print(e)
+                        result = "An error occurred while executing the function."
                     messages.append(
                         {
                             "role": "tool",

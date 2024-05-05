@@ -53,10 +53,18 @@ class Registry:
         Tuple[Callable, bool]
             A tuple containing the function and a boolean indicating whether the function requires a ChatContext object as one of its arguments.
         """
-        return (
-            self.__functions[name]["func"],
-            self.__functions[name]["requires_context"],
-        )
+        try:
+            return (
+                self.__functions[name]["func"],
+                self.__functions[name]["requires_context"],
+            )
+        except KeyError:
+            return (
+                (
+                    lambda *args, **kwargs: f"Error: function `{name}` is not available. Most likely, the name is incorrect."
+                ),
+                False,
+            )
 
     def get_available_functions(self) -> List[dict]:
         """Returns a list of JSON representations of the functions in the registry.
