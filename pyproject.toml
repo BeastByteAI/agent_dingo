@@ -9,7 +9,7 @@ dependencies = [
   "tenacity>=8.2.0,<9.0.0",
 ]
 name = "agent_dingo"
-version = "1.0.0a1"
+version = "1.0.0"
 authors = [
   { name="Oleh Kostromin", email="kostromin97@gmail.com" },
   { name="Iryna Kondrashchenko", email="iryna230520@gmail.com" },
