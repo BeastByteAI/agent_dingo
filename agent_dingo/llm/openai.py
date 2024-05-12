@@ -81,6 +81,18 @@ class OpenAI(BaseLLM):
         # TODO: Add per instance API key
         # TODO: Add remaining generation parameters
     ):
+        """
+        OpenAI client to interact with compatible APIs.
+
+        Parameters
+        ----------
+        model : str
+            model to use
+        temperature : float, optional
+            generation temperature, by default 0.7
+        base_url : Optional[str], optional
+            _description_, by default None
+        """
         self.model = model
         self.temperature = temperature
         self.client = openai.OpenAI(base_url=base_url)

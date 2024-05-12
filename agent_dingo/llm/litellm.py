@@ -17,6 +17,18 @@ class LiteLLM(BaseLLM):
         temperature: float = 0.7,
         completion_extra_kwargs: Optional[Dict] = None,
     ):
+        """
+        Lite LLM client to interact with various LLM providers.
+
+        Parameters
+        ----------
+        model : str
+            model to use
+        temperature : float, optional
+            generation temparature, by default 0.7
+        completion_extra_kwargs : Optional[Dict], optional
+            additional arguments to be passed to a completion method, by default None
+        """
 
         self.temperature = temperature
         self.model = model

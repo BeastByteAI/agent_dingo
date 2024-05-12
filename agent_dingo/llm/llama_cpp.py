@@ -17,6 +17,20 @@ class LlamaCPP(BaseLLM):
     def __init__(
         self, model: str, temperature: float = 0.7, verbose: bool = False, **kwargs: Any
     ):
+        """
+        Llama.cpp client to run LLMs in a GGUF format locally.
+
+        Parameters
+        ----------
+        model : str
+            path to the model file
+        temperature : float, optional
+            model temperature, by default 0.7
+        verbose : bool, optional
+            flag to enable verbosity, by default False
+        **kwargs : Any
+            additional arguments to be passed to the model constructor
+        """
 
         self.model = _Llama(model, verbose=verbose, **kwargs)
         self.temperature = temperature

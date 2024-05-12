@@ -21,8 +21,8 @@ class Qdrant(_BaseVectorStore):
         self,
         collection_name: str,
         embedding_size: int,
-        host: Optional[str] = None,
         path: Optional[str] = None,
+        host: Optional[str] = None,
         port: Optional[int] = None,
         url: Optional[str] = None,
         api_key: Optional[str] = None,
@@ -30,6 +30,37 @@ class Qdrant(_BaseVectorStore):
         upsert_batch_size: int = 32,
         try_init: bool = True,
     ):
+        """
+        Qdrant vector store.
+
+        Parameters
+        ----------
+        collection_name : str
+            collection name
+        embedding_size : int
+            size of the vector embeddings
+        path : Optional[str], optional
+            path to the local database, does not support concurrent clients, by default None
+        host : Optional[str], optional
+            host, by default None
+        port : Optional[int], optional
+            port, by default None
+        url : Optional[str], optional
+            base url of qdrant provider, by default None
+        api_key : Optional[str], optional
+            api key of qdrant provider, by default None
+        recreate_collection : bool, optional
+            flag to control whether the collection should be recreated on init, by default False
+        upsert_batch_size : int, optional
+            batch size for upserting the documents, by default 32
+        try_init : bool, optional
+            flag to control whether the collocetion should be created on object initialization, by default True
+
+        Raises
+        ------
+        an
+            _description_
+        """
         clint_params = {
             "host": host,
             "path": path,

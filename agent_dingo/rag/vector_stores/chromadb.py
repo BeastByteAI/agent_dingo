@@ -27,6 +27,24 @@ class ChromaDB(_BaseVectorStore):
         recreate_collection: bool = False,
         upsert_batch_size: int = 32,
     ):
+        """
+        ChromaDB vector store.
+
+        Parameters
+        ----------
+        collection_name : str
+            name of the collection to store the vectors
+        path : Optional[str], optional
+            path to the local database, by default None
+        host : Optional[str], optional
+            host, by default None
+        port : Optional[int], optional
+            port, by default None
+        recreate_collection : bool, optional
+            flag to control whether the collection should be recreated on init, by default False
+        upsert_batch_size : int, optional
+            batch size for upserting the documents, by default 32
+        """
         if path is not None and (host is not None or port is not None):
             raise ValueError("Either path or host/port must be specified, not both")
         if path is not None:

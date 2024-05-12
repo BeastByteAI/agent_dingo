@@ -27,6 +27,20 @@ class Gemini(BaseLLM):
     def __init__(
         self, model: str, project: str, location: str, temperature: float = 0.7
     ):
+        """
+        VertexAI Gemini LLM.
+
+        Parameters
+        ----------
+        model : str
+            model to use
+        project : str
+            project id to use
+        location : str
+            location to use
+        temperature : float, optional
+            generation temperature, by default 0.7
+        """
         _vertex_init(project=project, location=location)
         self._model = GenerativeModel(model)
         self.supports_function_calls = True
