@@ -1,6 +1,7 @@
 from docstring_parser import parse as _parse
 import ast
 
+
 _types = {
     "str": "string",
     "int": "integer",

@@ -1,5 +1,5 @@
 import unittest
-from agent_dingo.docgen import extract_substr
+from agent_dingo.agent.docgen import extract_substr
 
 
 class TestExtractSubstr(unittest.TestCase):

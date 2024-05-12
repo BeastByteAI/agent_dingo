@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 dependencies = [
-  "openai>=0.27.0,<1.0.0",
+  "openai>=1.25.0,<2.0.0",
   "docstring_parser>=0.15.0,<1.0.0",
   "tenacity>=8.2.0,<9.0.0",
 ]
 name = "agent_dingo"
-version = "0.1.0"
+version = "1.0.0"
 authors = [
   { name="Oleh Kostromin", email="kostromin97@gmail.com" },
   { name="Iryna Kondrashchenko", email="iryna230520@gmail.com" },
@@ -17,13 +17,20 @@ authors = [
 description = "A microframework for creating simple AI agents."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.8"
-classifiers = [
+requires-python = ">=3.9"
+classifiers = [ 
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 
 [project.optional-dependencies]
-server = ["flask>=2.0.0,<3.0.0", "waitress>=2.0.0,<3.0.0"]
-langchain = ["langchain>=0.0.230,<0.1.0"]
+server = ["fastapi>=0.105.0,<1.0.0", "uvicorn>=0.20.0,<1.0.0"]
+langchain = ["langchain>=0.1.0,<0.2.0"]
+qdrant = ["qdrant-client>=1.9.0,<2.0.0"]
+chromadb = ["chromadb>=0.5.0,<1.0.0"]
+sentence-transformers = ["sentence-transformers>=2.3.0,<3.0.0"]
+rag-default = ["PyPDF2>=3.0.0,<4.0.0", "beautifulsoup4>=4.12.0,<5.0.0", "requests>=2.26.0,<3.0.0", "python-docx>=1.0.0,<2.0.0"]
+vertexai = ["google-cloud-aiplatform>=1.40.0,<2.0.0"]
+litellm = ["litellm>=1.30.0,<2.0.0"]
+llama-cpp = ["llama-cpp-python>=0.2.20,<0.3.0"]

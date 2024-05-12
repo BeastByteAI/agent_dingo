@@ -1,6 +1,6 @@
 import unittest
-from agent_dingo.helpers import get_required_args
-from agent_dingo.context import ChatContext
+from agent_dingo.agent.helpers import get_required_args
+from agent_dingo.agent.chat_context import ChatContext
 
 
 class TestGetRequiredArgs(unittest.TestCase):

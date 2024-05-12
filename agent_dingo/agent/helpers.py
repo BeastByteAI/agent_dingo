@@ -1,6 +1,7 @@
-from agent_dingo.context import ChatContext
+from agent_dingo.core.state import Context
 from typing import Callable, List
 import inspect
+from agent_dingo.agent.chat_context import ChatContext
 
 
 def construct_json_repr(
