@@ -25,6 +25,7 @@
 
 _Dingo_ is a compact LLM orchestration framework designed for straightforward development of production-ready LLM-powered applications. It combines simplicity with flexibility, allowing for the efficient construction of pipelines and agents, while maintaining a high level of control over the process.
 
+
 ## Support us 🤝
 
 You can support the project in the following ways:
@@ -49,6 +50,7 @@ You can support the project in the following ways:
   <img alt="Logo" src="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/dingo_h_dark.svg" height = "65">
 </picture>
 </a>
+
 
 ## Quick Start & Documentation 🚀
 
