@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
- <img src="https://github.com/OKUA1/agent_dingo/blob/main/logo.png?raw=true" alt="AgentDingo" width="250" height = "250">
+ <img src="https://gist.githubusercontent.com/OKUA1/55e2fb9dd55673ec05281e0247de6202/raw/41063fcd620d9091662fc6473f9331a7651b4465/dingo.svg" alt="AgentDingo" width="250" height = "250">
   <br>
   Agent Dingo
   <br>
@@ -25,14 +25,37 @@
 
 _Dingo_ is a compact LLM orchestration framework designed for straightforward development of production-ready LLM-powered applications. It combines simplicity with flexibility, allowing for the efficient construction of pipelines and agents, while maintaining a high level of control over the process.
 
-## Quick Start ⚡️
+## Support us 🤝
 
-> ⚠️ **This is a `v1` branch which is still in development**. The documentation might be incomplete, and some features might not be fully implemented. The current stable version is `v0.1.0`, which can be found in the [`main`](https://github.com/BeastByteAI/agent_dingo) branch.
+You can support the project in the following ways:
+
+- ⭐ Star Dingo on GitHub (click the star button in the top right corner)
+- 💡 Provide your feedback or propose ideas in the [issues](https://github.com/BeastByteAI/agent_dingo/issues) section or [Discord](https://discord.gg/YDAbwuWK7V)
+- 📰 Post about Dingo on LinkedIn or other platforms
+- 🔗 Check out our other projects: <a href="https://github.com/iryna-kondr/scikit-llm">Scikit-LLM</a>, <a href="https://github.com/beastbyteai/falcon">Falcon</a>
+
+<br>
+<a href="https://github.com/iryna-kondr/scikit-llm">
+  <picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/skll_h_dark.svg" >
+  <source media="(prefers-color-scheme: dark)" srcset="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/skllm_h_light.svg">
+  <img alt="Logo" src="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/skll_h_dark.svg" height = "65">
+</picture>
+</a> <br><br>
+<a href="https://github.com/OKUA1/falcon">
+  <picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/falcon_h_dark.svg" >
+  <source media="(prefers-color-scheme: dark)" srcset="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/falcon_h_light.svg">
+  <img alt="Logo" src="https://gist.githubusercontent.com/OKUA1/ce2167df8e441ce34a9fbc8578b86543/raw/f740c391ec37eaf2f80d5b46f1fa2a989dd45932/dingo_h_dark.svg" height = "65">
+</picture>
+</a>
+
+## Quick Start & Documentation 🚀
 
 **Step 1:** Install `agent-dingo`
 
 ```bash
-pip install git+https://github.com/beastbyteai/agent_dingo.git@pipelines
+pip install agent-dingo
 ```
 
 **Step 2:** Configure your OpenAI API key
@@ -41,200 +64,43 @@ pip install git+https://github.com/beastbyteai/agent_dingo.git@pipelines
 export OPENAI_API_KEY=<YOUR_KEY>
 ```
 
-**Step 3:** Instantiate the `LLM` and `Agent`
+**Step 3:** Build your pipeline
 
-```python
-from agent_dingo.agent import Agent
+Example 1 (Linear Pipeline):
+
+````python
 from agent_dingo.llm.openai import OpenAI
-
-llm = OpenAI(model="gpt-3.5-turbo")
-agent = Agent(llm)
-```
-
-**Step 4:** Add `agent.function` decorator to the function you wish to integrate
-
-```python
-@agent.function
-def get_current_weather(city: str):
-    ...
-```
-
-**Step 5:** Run the agent
-
-```python
-from agent_dingo.core.message import UserMessage
-from agent_dingo.core.state import ChatPrompt
-
-# Pipeline with raw chat prompt
-pipeline_raw = agent.as_pipeline()
-prompt = ChatPrompt(messages=[UserMessage("What is the current weather in Linz?")])
-out = pipeline_raw.run(prompt)
-print(out)
-
-# Pipeline with a prompt builder
 from agent_dingo.core.blocks import PromptBuilder
-prompt_template = [UserMessage("What is the current weather in {city}?")]
-prompt_builder = PromptBuilder([UserMessage("What is the current weather in {city}?")])
-pipeline_with_builder = prompt_builder >> agent
-out = pipeline_with_builder.run(city="Linz")
-print(out)
-```
-
-**Optional:** Run an OpenAI compatible server
-
-```python
-from agent_dingo.serve import serve_pipeline
-serve_pipeline({"weather_model_1": pipeline_raw, "weather_model_2": pipeline_with_builder}, port = 8080)
-```
-
-The server can be accessed using the `openai` python package:
-
-```python
-import openai
-
-client = openai.OpenAI(base_url="http://localhost:8080")
-
-# raw pipeline
-messages = [
-    {"role": "user", "content": "What is the current weather in Linz?"},
-]
-
-out = client.chat.completions.create(messages=messages, model="weather_model_1")
-print(out)
-
-# pipeline with prompt builder
-messages = [
-    {"role": "context_city", "content": "Linz"},
-]
-
-out = client.chat.completions.create(messages=messages, model="weather_model_2")
-print(out)
-```
-
-## Support us 🤝
-
-You can support the project in the following ways:
-
-⭐ Star _Dingo_ on GitHub (click the star button in the top right corner)
-
-💡 Provide your feedback or propose ideas in the issues section or Discord
-
-📰 Post about _Dingo_ on LinkedIn or other platforms
-
-🔗 Check out our other projects (cards below are clickable):
-
-<a href="https://github.com/OKUA1/falcon"><img src="https://raw.githubusercontent.com/gist/OKUA1/6264a95a8abd225c74411a2b707b0242/raw/3cedb53538cb04656cd9d7d07e697e726896ce9f/falcon_light.svg"/></a> <br>
-<a href="https://github.com/iryna-kondr/scikit-llm"><img src="https://gist.githubusercontent.com/OKUA1/6264a95a8abd225c74411a2b707b0242/raw/029694673765a3af36d541925a67214e677155e5/skllm_light.svg"/></a>
-
-## Documentation 📚
-
-For now, the documentation only covers the core concepts and does not provide a comprehensive overview of the internal workings of the framework. The full documentation will be released once the `v1` is stable.
-
-### Blocks and Pipelines
-
-The core concept of the framework is the `Block` and `Pipeline`. The `Block` is a single element of the pipeline that can be used to perform a specific task (e.g. build a prompt, call an LLM, etc.). Each block has a `forward` method that receives the current state, a global immutable context and a global mutable store. The block modifies and returns the state. The `Pipeline` is a sequence of blocks that are executed in order.
-
-The simplest pipeline consists of a single `LLM` block, which is used to call the LLM model.
-
-```python
-from agent_dingo.llm.openai import OpenAI
-from agent_dingo.core.message import UserMessage
-from agent_dingo.core.state import ChatPrompt
-llm = OpenAI(model="gpt-3.5-turbo") # this expects the OPENAI_API_KEY environment variable to be set
-
-prompt = ChatPrompt(messages=[UserMessage("What is the population of Linz?")])
-pipeline = llm.as_pipeline()
-pipeline.run(prompt) # the first (optional) argument is the initial state of the pipeline
-```
-
-#### Building a pipeline with several blocks
-
-The pipeline can be built by simply concatenating the blocks using the `>>` operator. For example, instead of providing the whole `ChatPrompt` as an initial state, we want to only provide the city and build the prompt inside the pipeline.
-
-```python
-from agent_dingo.core.blocks import PromptBuilder
-from agent_dingo.llm.openai import OpenAI
 from agent_dingo.core.message import UserMessage
 from agent_dingo.core.state import ChatPrompt
 
-llm = OpenAI(model="gpt-3.5-turbo")
 
-template = [UserMessage("What is the population of {city}?")]
-prompt_builder = PromptBuilder(template=template)
+# Model
+gpt = OpenAI("gpt-3.5-turbo")
 
-pipeline = prompt_builder >> llm
+# Summary prompt block
+summary_pb = PromptBuilder(
+    [UserMessage("Summarize the text in 10 words: ```{text}```.")]
+)
 
-pipeline.run(city="Linz")
-```
+# Translation prompt block
+translation_pb = PromptBuilder(
+    [UserMessage("Translate the text into {language}: ```{summarized_text}```.")],
+    from_state=["summarized_text"],
+)
 
-In this example, the command `pipeline.run(city="Linz")` is equivalent to `pipeline.run(state_ = None, city = Linz)`, where the additional keyword arguments (in this case `city`) are used to form a **global context** of the pipeline, which can be accessed by all blocks. By default, the `PromptBuilder` block will attempt to extract all the required arguments from the global context.
+# Pipeline
+pipeline = summary_pb >> gpt >> translation_pb >> gpt
 
-#### Parallel branches
+input_text = """
+Dingo is an ancient lineage of dog found in Australia, exhibiting a lean and sturdy physique adapted for speed and endurance, dingoes feature a wedge-shaped skull and come in colorations like light ginger, black and tan, or creamy white. They share a close genetic relationship with the New Guinea singing dog, diverging early from the domestic dog lineage. Dingoes typically form packs composed of a mated pair and their offspring, indicating social structures that have persisted through their history, dating back approximately 3,500 years in Australia.
+"""
 
-It is also possible to run several blocks in parallel. For example, we might want to call different LLMs with the same prompt and then compare the results.
+output = pipeline.run(text = input_text, language = "french")
+print(output)
+````
 
-```python
-from agent_dingo.core.blocks import PromptBuilder, Squeeze
-from agent_dingo.llm.openai import OpenAI
-from agent_dingo.core.message import UserMessage
-from agent_dingo.core.state import ChatPrompt
-
-gpt3 = OpenAI(model="gpt-3.5-turbo")
-gpt4 = OpenAI(model="gpt-4")
-
-squeeze_template_string = "gpt3: {gpt3_result}\ngpt4: {gpt4_result}"
-
-template = [UserMessage("What is the population of {city}?")]
-prompt_builder = PromptBuilder(template=template)
-
-pipeline = prompt_builder >> (gpt3 & gpt4) >> Squeeze(squeeze_template_string)
-pipeline.run(city="Linz")
-```
-
-The `&` operator initializes a `Parallel` block that runs the `gpt3` and `gpt4` blocks in parallel. The `Squeeze` block is used to combine the results of the parallel branches into a single string.
-
-#### Custom and inline blocks
-
-It is possible to define a custom block by inheriting from the `Block` class and implementing the `forward` method. However, it is often easier to use the `InlineBlock` decorator which allows to define the block as a simple function.
-
-```python
-from agent_dingo.core.blocks import PromptBuilder, Squeeze
-from agent_dingo.core.message import UserMessage
-from agent_dingo.core.state import ChatPrompt
-
-@InlineBlock()
-def fake_llm(state, context, store):
-    return "This is a fake response."
-
-pipeline = fake_llm.as_pipeline()
-prompt = ChatPrompt(messages=[UserMessage("What is the population of Linz?")])
-pipeline.run(prompt)
-```
-
-#### Async pipelines
-
-The `Pipeline` can be run asynchronously using the `async` method, which in turn uses the `async_forward` method of the blocks. When defining an inline block, it is sufficient to use an `async` keyword in the function definition.
-
-```python
-from agent_dingo.core.blocks import PromptBuilder, Squeeze
-from agent_dingo.core.message import UserMessage
-from agent_dingo.core.state import ChatPrompt
-import asyncio
-
-@InlineBlock()
-async def fake_llm(state, context, store):
-    return "This is a fake response."
-
-pipeline = fake_llm.as_pipeline()
-
-asyncio.run(pipeline.async_run(ChatPrompt(messages=[UserMessage("What is the population of Linz?")])))
-```
-
-If async and sync blocks are mixed in the same pipeline, the runtime will still be able to run the pipeline (in both sync and async modes), but produce a warning as this scenario is not performance-optimized and not recommended for production use.
-
-### Agents
-
-`Agent` is a block which allows you to register the functions to use with the LLM. The intermediate function calls are handled automatically by the agent. The function can be registered with a single line of code using the `agent.function` decorator, which generates the function descriptor from the docstring.
+Example 2 (Agent):
 
 ```python
 from agent_dingo.agent import Agent
@@ -244,7 +110,7 @@ import requests
 llm = OpenAI(model="gpt-3.5-turbo")
 agent = Agent(llm, max_function_calls=3)
 
-@agent.function # equivalent to `agent.register_function(get_temperature)`
+@agent.function
 def get_temperature(city: str) -> str:
     """Retrieves the current temperature in a city.
 
@@ -269,200 +135,6 @@ def get_temperature(city: str) -> str:
     return str(data)
 
 pipeline = agent.as_pipeline()
-...
-
 ```
 
-If the function does not have a docstring, it can still be registered. In that case, the docstring will be generated automatically by ChatGPT.
-However, there are several drawbacks of this approach:
-
-- The source code of your function is passed to the model;
-- The generated docstring might be inaccurate (especially for complex functions);
-- The generated docstrings are not persistant (i.e. they are not saved to disk) and will have to be regenerated every time the function is registered.
-
-If you wish to disable the automatic docstring generation, you can set the `allow_codegen` parameter to `False` when instantiating the agent.
-
-By default the `allow_codegen` parameter is set to `"env"` which means that the value is read from the `DINGO_ALLOW_CODEGEN` environment variable. If the variable is not set, it is assumed to be `True`.
-
-#### LangChain Tools 🦜️🔗
-
-It is possible to convert [Langchain Tools](https://python.langchain.com/docs/modules/agents/tools/) into dingo-compatible functions (refered to as function descriptors) in order to register them with Dingo. The converter can be used as follows:
-
-1. Install langchain:
-
-```bash
-pip install agent_dingo[langchain]
-```
-
-2. Define the tool, we will use the Wikipedia tool as an example:
-
-```python
-from langchain.tools.wikipedia.tool import WikipediaQueryRun
-from langchain.utilities.wikipedia import WikipediaAPIWrapper
-tool = WikipediaQueryRun(api_wrapper = WikipediaAPIWrapper())
-```
-
-Please refer to the [LangChain documentation](https://python.langchain.com/docs/modules/agents/tools/) for more details on how to define the tools.
-
-3. Convert the tool into a function descriptor and register:
-
-```python
-from agent_dingo.agent.langchain import convert_langchain_tool
-descriptor = convert_langchain_tool(tool)
-agent.register_descriptor(descriptor)
-```
-
-#### Multiple Agents / Sub-agents
-
-Each agent can be used as a function descriptor, which allows to create a hierarchy of agents. This can be useful when you want to create several specialized agents that can be used from a manager agent when appropriate.
-
-```python
-from agent_dingo.core.message import UserMessage, SystemMessage, AssistantMessage
-from agent_dingo.core.state import State, ChatPrompt, KVData, Context, Store
-from agent_dingo.core.blocks import (
-    PromptBuilder,
-)
-from agent_dingo.agent import Agent
-from agent_dingo.llm.openai import OpenAI
-
-
-llm = OpenAI(model="gpt-3.5-turbo")
-
-
-messages = [
-    SystemMessage("You are a helpful assistant. Provide concise anwers."),
-    UserMessage("What is the weather in {city}?"),
-]
-
-qa_prompt = PromptBuilder(messages)
-
-agent = Agent(
-    llm,
-    max_function_calls=2,
-    name="manager",
-    description="An agent with access to assisting agents.",
-)
-
-another_agent = Agent(
-    llm,
-    max_function_calls=2,
-    name="another_agent",
-    description="An agent with access to weather forecast data.",
-)
-
-
-@another_agent.function
-def get_temperature(city: str) -> str:
-    """Retrieves the current temperature in a city.
-
-    Parameters
-    ----------
-    city : str
-        The city to get the temperature for.
-
-    Returns
-    -------
-    str
-        str representation of the json response from the weather api.
-    """
-    return '{{"temperature"}}:"20"'  # fake response
-
-
-agent.register_descriptor(another_agent.as_function_descriptor())
-
-
-pipeline = qa_prompt >> agent
-
-print(pipeline.get_required_context_keys())
-print(pipeline.run(city="Berlin"))
-
-```
-
-### RAG
-
-At the moment, only the simplest form of RAG is supported.
-
-```python
-from agent_dingo.rag.chunkers.recursive import RecursiveChunker
-from agent_dingo.rag.embedders.sentence_transformer import SentenceTransformer
-from agent_dingo.rag.vector_stores.chromadb import ChromaDB
-from agent_dingo.rag.readers.list import ListReader
-from agent_dingo.rag.prompt_modifiers import RAGPromptModifier
-from agent_dingo.core.blocks import ChatPrompt
-from agent_dingo.core.message import UserMessage
-
-### build
-text = """
-...
-"""
-# Initialize reader, chunker, embedder and vector store
-reader = ListReader()
-chunker = RecursiveChunker(chunk_size=256)
-embedder = SentenceTransformer()
-vs = ChromaDB(collection_name="test", path="./here", recreate_collection=True)
-# prepare the vector store
-chunks = chunker.chunk(reader.read([text]))
-embedder.embed_chunks(chunks)
-vs.upsert_chunks(chunks)
-
-### run
-prompt = ChatPrompt([UserMessage("...")])
-llm = OpenAI(model="gpt-3.5-turbo")
-rag = RAGPromptModifier(embedder, vs)
-pipeline = rag >> llm
-
-pipeline.run(prompt)
-```
-
-### Web Server
-
-The pipeline can be invoked using a REST API. The server can be started using the `serve_pipeline` function. The function takes either a single pipeline (which will be used as a default model and named "dingo") or a dictionary of pipelines (where the keys are the model names).
-
-```python
-from agent_dingo.core.state import State, ChatPrompt, KVData
-from agent_dingo.core.blocks import *
-from agent_dingo.core.message import *
-from agent_dingo.serve import serve_pipeline
-
-from agent_dingo.llm.openai import OpenAI
-
-llm = OpenAI(model="gpt-3.5-turbo")
-
-translation_prompt_template = "Translate to {language}: {text}"
-
-translation_builder = PromptBuilder(
-    [UserMessage(translation_prompt_template)], from_state=["text"]
-)
-
-pipeline = llm >> translation_builder >> llm
-
-pipeline_raw = llm.as_pipeline()
-
-serve_pipeline({"gpt35-translated": pipeline, "gpt35-raw": pipeline_raw}, port = 8000, is_async=True)
-
-```
-
-Once the server is running, the pipeline can be accessed using the `openai` python package:
-
-```python
-import openai
-
-client = openai.OpenAI(base_url="http://localhost:8000")
-
-messages = [
-    {"role": "user", "content": "What is the capital of France?"},
-    {"role": "context_language", "content": "French"}, # context keys are passed as custom roles with the "context_" prefix
-]
-
-out = client.chat.completions.create(messages=messages, model="gpt35-translated")
-
-print(out)
-
-out = client.chat.completions.create(messages=messages, model="gpt35-raw") # the language context will be ignored
-
-print(out)
-
-models = client.models.list()
-print(models.models[0])
-
-```
+For a more detailed overview and additional examples, please refer to the **[documentation](https://dingo.beastbyte.ai/)**.
